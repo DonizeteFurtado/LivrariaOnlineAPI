@@ -1,0 +1,6 @@
+@LivrariaOnlineAPI_HostAddress = http://localhost:5049
+
+GET {{LivrariaOnlineAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
