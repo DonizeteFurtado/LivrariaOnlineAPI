@@ -48,15 +48,74 @@ public class LivroController : ControllerBase
         return Ok(livrosDto);
     }
 
-    [HttpPut]
-    public IActionResult AtualizaLivro()
+    [HttpPut("{id}")]
+    public async Task<IActionResult> AtualizaLivro(int id, [FromBody] LivroModel livroAtualizado)
     {
-        return BadRequest();
+        if (id != livroAtualizado.Id)
+        {
+            return BadRequest("O ID do livro na URL e no corpo não coincidem.");
+        }
+
+        var LivroExistente = await _context.Livros
+            .Include(l => l.Genero)
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+        if (LivroExistente == null)
+        {
+            return NotFound("Livro não encontrado");
+        }
+        
+        LivroExistente.Titulo = livroAtualizado.Titulo;
+        LivroExistente.Autor = livroAtualizado.Autor;
+        LivroExistente.GeneroId = livroAtualizado.GeneroId;
+        LivroExistente.QtdEstoque = livroAtualizado.QtdEstoque;
+        LivroExistente.Preco = livroAtualizado.Preco;
+        
+        await _context.SaveChangesAsync();
+        return NoContent();
     }
 
-    [HttpDelete]
-    public IActionResult DeletaLivro()
+    [HttpDelete("{id}")]
+    public async Task<IActionResult>DeletaLivro(int id)
     {
-        return BadRequest();
+        var livro = await _context.Livros
+            .Include(l => l.Genero)
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+        if (livro == null)
+        {
+            return NotFound("Livro não encontrado.");
+        }
+
+        _context.Livros.Remove(livro);
+        
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpDelete("genero{id}")]
+    public async Task<IActionResult> DeletaGenero(int id)
+    {
+        var genero = await _context.Generos
+            .FirstOrDefaultAsync(g => g.IdGenero == id);
+
+        if (genero == null)
+        {
+            return NotFound("Gênero não encontrado.");
+        }
+
+        var livroUsandoGenero = await _context.Livros
+            .Where(l => l.GeneroId == id)
+            .ToListAsync();
+
+        if (livroUsandoGenero.Any())
+        {
+            return BadRequest("\"Não é possível excluir um gênero que está sendo utilizado em livros.\"");
+        }
+        
+        _context.Generos.Remove(genero);
+        await _context.SaveChangesAsync();
+        
+        return NoContent();
     }
 }
