@@ -2,10 +2,12 @@
 
 public class LivroModel
 {
-    public required string Id {  get; set; }
-    public required string Titulo { get; set; }
-    public required string Autor {  get; set; }
-    public required string Genero { get; set; }
-    public required decimal Preco { get; set; }  
-    public required int QtdEstoque { get; set; }
+    public int Id {  get; set; }
+    public string Titulo { get; set; }
+    public string Autor {  get; set; }
+    public decimal Preco { get; set; }  
+    public int QtdEstoque { get; set; }
+    
+    public int GeneroId { get; set; }
+    public GeneroModel? Genero { get; set; }
 }

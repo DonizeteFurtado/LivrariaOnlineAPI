@@ -1,6 +1,7 @@
 ﻿using LivrariaOnlineAPI.Data;
 using LivrariaOnlineAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SQLitePCL;
 
 namespace LivrariaOnlineAPI.Controllers;
@@ -15,18 +16,36 @@ public class LivroController : ControllerBase
     }
     
     [HttpPost]
-    public IActionResult CriarLivro(LivroModel livro)
+    public async Task<IActionResult> CriarLivro(LivroModel livro)
     {
-        _context.Livros.Add(livro);
-        _context.SaveChangesAsync();
+        await _context.Livros.AddAsync(livro);
+        await _context.SaveChangesAsync();
 
-        return Ok(_context.Livros);
+        return Ok(await _context.Livros.ToListAsync());
     }
 
     [HttpGet]
     public IActionResult VerLivro()
     {
-        return Ok(_context.Livros);
+        var livrosDto = _context.Livros
+            .Include(l => l.Genero)
+            .Select(l => new LivroModel()
+            {
+                Id = l.Id,
+                Titulo = l.Titulo,
+                Autor = l.Autor,
+                QtdEstoque = l.QtdEstoque,
+                GeneroId = l.GeneroId,
+                Preco = l.Preco,
+                Genero = new GeneroModel()
+                {
+                    IdGenero = l.Genero.IdGenero,
+                    Nome = l.Genero.Nome
+                }
+            })
+            .ToList();
+
+        return Ok(livrosDto);
     }
 
     [HttpPut]
